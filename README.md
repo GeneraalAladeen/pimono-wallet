@@ -12,6 +12,7 @@ DB_PASSWORD=root
 DOCKER_CONFIG_FOLDER=/home/ojie-oriarewo/pimono-config
 
 - docker-compose run --rm base_php composer i
+- cp .env.example .env
 - docker-compose run --rm base_php php artisan key:gen
 - docker-compose up -d database_server
 - docker-compose run --rm base_php php artisan migrate --seed
@@ -20,6 +21,13 @@ DOCKER_CONFIG_FOLDER=/home/ojie-oriarewo/pimono-config
 
 ## Testing
 
-To test code coverage run
-- ** php artisan test --coverage --min=80**
+Copy the environment file:
+    cp .env.example .env.testing
+
+Update the database name in .env.testing
+    DB_DATABASE=laravel_test
+
+To test code coverage run:
+    php artisan test --coverage --min=80
+
 
