@@ -6,6 +6,7 @@ use App\Events\Transactions\TransactionCompleted;
 use App\Jobs\Transaction\ProcessTransfer;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Services\CircuitBreaker;
 use App\Services\TransactionService;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Queue;
@@ -162,5 +163,53 @@ class StoreTransactionTest extends TestCase
             ]);
 
         Queue::assertPushedOn('transfers', ProcessTransfer::class);
+    }
+
+    public function test_automatically_queues_transfers_when_circuit_open()
+    {
+        Queue::fake();
+
+        $sender = User::factory()->create(['balance' => 1000]);
+        $receiver = User::factory()->create(['balance' => 500]);
+
+        $circuitBreaker = new CircuitBreaker('transaction_service');
+        for ($i = 0; $i < 5; $i++) {
+            $circuitBreaker->markFailure();
+        }
+
+        $this->actingAs($sender);
+        $response = $this->postJson(route('transaction.store'), [
+            'receiver_id' => $receiver->id,
+            'amount' => 100,
+        ]);
+
+        $response->assertStatus(202)
+            ->assertJsonFragment([
+                'message' => 'Transfer queued for processing',
+                'status' => 'queued',
+            ]);
+
+        Queue::assertPushedOn('transfers', ProcessTransfer::class);
+    }
+
+    public function test_it_recovers_after_circuit_timeout()
+    {
+        $sender = User::factory()->create(['balance' => 1000]);
+        $receiver = User::factory()->create(['balance' => 500]);
+
+        $circuitBreaker = new CircuitBreaker('transaction_service');
+        for ($i = 0; $i < 5; $i++) {
+            $circuitBreaker->markFailure();
+        }
+
+        $this->travel(61)->seconds();
+
+        $this->actingAs($sender);
+        $response = $this->postJson(route('transaction.store'), [
+            'receiver_id' => $receiver->id,
+            'amount' => 100,
+        ]);
+
+        $response->assertSuccessful();
     }
 }

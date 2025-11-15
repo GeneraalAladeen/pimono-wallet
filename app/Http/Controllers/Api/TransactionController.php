@@ -45,7 +45,7 @@ class TransactionController extends Controller
 
         } catch (\Exception $e) {
             return response()->json([
-                'message' => $e->getMessage(),
+                'message' => 'Error processing transfer',
             ], 400);
         }
     }

@@ -6,13 +6,14 @@ use App\Events\Transactions\TransactionCompleted;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Support\Facades\Event;
-use Illuminate\Support\Facades\Broadcast;
 use Tests\TestCase;
 
 class TransactionCompletedEventTest extends TestCase
 {
     protected User $sender;
+
     protected User $receiver;
+
     protected Transaction $transaction;
 
     protected function setUp(): void
@@ -50,10 +51,9 @@ class TransactionCompletedEventTest extends TestCase
         $channels = $event->broadcastOn();
 
         $this->assertCount(2, $channels);
-        $this->assertEquals('users.' . $this->sender->id, $channels[0]->name);
-        $this->assertEquals('users.' . $this->receiver->id, $channels[1]->name);
+        $this->assertEquals('users.'.$this->sender->id, $channels[0]->name);
+        $this->assertEquals('users.'.$this->receiver->id, $channels[1]->name);
     }
-
 
     public function test_includes_correct_data_in_broadcast_payload()
     {
