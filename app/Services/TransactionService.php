@@ -2,26 +2,23 @@
 
 namespace App\Services;
 
+use App\Events\Transactions\TransactionCompleted;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use App\Events\Transactions\TransactionCompleted;
 
-
-class TransactionService 
+class TransactionService
 {
     const COMMISSION_RATE = 0.015;
 
-
     /**
      * Transfer money to user
-     * 
-     * @param int $senderId
-     * @param int $receiverId
-     * @param float $amount
-     * 
-     * @return Transaction | array
-     * 
+     *
+     * @param  int  $senderId
+     * @param  int  $receiverId
+     * @param  float  $amount
+     * @return Transaction
+     *
      * @throws \Exception
      */
     public function executeTransfer($senderId, $receiverId, $amount)
@@ -57,5 +54,20 @@ class TransactionService
         });
     }
 
+    /**
+     * Fetches User Transactions
+     *
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<Transaction>
+     */
+    public function getUserTransactions(User $user, ?int $perPage = 10)
+    {
+        $transactions = Transaction::where('sender_id', $user->id)
+            ->orWhere('receiver_id', $user->id)
+            ->with(['sender', 'receiver'])
+            ->orderBy('created_at', 'desc')
+            ->simplePaginate($perPage);
 
+        return $transactions;
+    }
 }

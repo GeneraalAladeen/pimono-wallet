@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -24,7 +25,7 @@ class TransactionFactory extends Factory
             'sender_id' => User::factory(),
             'amount' => $amount,
             'commission_fee' => $commission,
-            'total_amount_debited' => $commission + $amount
+            'total_amount_debited' => $commission + $amount,
         ];
     }
 }

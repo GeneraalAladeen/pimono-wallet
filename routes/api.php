@@ -12,6 +12,7 @@ Route::get('/user', function (Request $request) {
 Route::post('/login', [LoginController::class, 'login'])->name('api.login');
 Route::post('/logout', [LoginController::class, 'logout'])->name('api.logout')->middleware('auth:sanctum');
 
-Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/transactions', [TransactionController::class, 'store'])->name('transaction.store');
+Route::group(['prefix' => 'transactions', 'middleware' => ['auth:sanctum']], function () {
+    Route::post('/', [TransactionController::class, 'store'])->name('transaction.store');
+    Route::get('/', [TransactionController::class, 'index'])->name('transaction.index');
 });

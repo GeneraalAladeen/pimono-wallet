@@ -32,14 +32,14 @@ class TransferRequest extends FormRequest
         $validator->after(function ($validator) {
             if ($this->receiver_id == $this->user()->id) {
                 $validator->errors()->add(
-                    'receiver_id', 
+                    'receiver_id',
                     'You cannot transfer money to yourself.'
                 );
             }
-            
+
             if ($this->user()->balance < ($this->amount * 1.015)) {
                 $validator->errors()->add(
-                    'amount', 
+                    'amount',
                     'Insufficient balance including commission fee.'
                 );
             }
