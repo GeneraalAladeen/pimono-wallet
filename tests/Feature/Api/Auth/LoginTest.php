@@ -7,7 +7,7 @@ use Tests\TestCase;
 
 class LoginTest extends TestCase
 {
-    public function testUserCanLogin(): void
+    public function test_user_can_login(): void
     {
         $user = User::factory()->create();
 
@@ -31,7 +31,7 @@ class LoginTest extends TestCase
 
     }
 
-    public function testUserCannotLoginWithWrongCredentials(): void
+    public function test_user_cannot_login_with_wrong_credentials(): void
     {
         $user = User::factory()->create();
 
@@ -50,26 +50,26 @@ class LoginTest extends TestCase
 
     }
 
-    public function testFieldsAreValidated(): void
+    public function test_fields_are_validated(): void
     {
         $response = $this->postJson(route('api.login'));
 
         $response->assertUnprocessable()
             ->assertJsonValidationErrors([
-                'email','password'
+                'email', 'password',
             ]);
     }
 
-    public function testUserCanLogout(): void
+    public function test_user_can_logout(): void
     {
         $user = User::factory()->create();
         $this->actingAs($user);
 
         $response = $this->postJson(route('api.logout'))
-        ->assertSuccessful()
-        ->assertJsonFragment([
-            'message' => 'Signed out!',
-        ]);
+            ->assertSuccessful()
+            ->assertJsonFragment([
+                'message' => 'Signed out!',
+            ]);
 
         $this->assertSame(count($user->tokens), 0);
     }
