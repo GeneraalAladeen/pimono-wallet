@@ -60,13 +60,14 @@ class TransactionService
      *
      * @return \Illuminate\Database\Eloquent\Collection<Transaction>
      */
-    public function getUserTransactions(User $user, ?int $perPage = 10)
+    public function getUserTransactions(User $user, int $perPage)
     {
         $transactions = Transaction::where('sender_id', $user->id)
             ->orWhere('receiver_id', $user->id)
             ->with(['sender', 'receiver'])
             ->orderBy('created_at', 'desc')
-            ->simplePaginate($perPage);
+            ->orderBy('id', 'desc')
+            ->cursorPaginate($perPage);
 
         return $transactions;
     }

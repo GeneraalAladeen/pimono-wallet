@@ -5,6 +5,7 @@ namespace App\Events\Transactions;
 use App\Models\Transaction;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
+use Illuminate\Broadcasting\Channel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
@@ -21,8 +22,8 @@ class TransactionCompleted implements ShouldBroadcast
     public function broadcastOn()
     {
         return [
-            new PrivateChannel('users.'.$this->transaction->sender_id),
-            new PrivateChannel('users.'.$this->transaction->receiver_id),
+            new Channel('users.'.$this->transaction->sender_id),
+            new Channel('users.'.$this->transaction->receiver_id),
         ];
     }
 

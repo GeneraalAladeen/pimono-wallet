@@ -17,7 +17,7 @@ class TransactionController extends Controller
 
     public function index(QueryTransactionRequest $request)
     {
-        $transactions = $this->transactionService->getUserTransactions($request->user(), $request->query('per_page'));
+        $transactions = $this->transactionService->getUserTransactions($request->user(), $request->query('per_page') ?? 10);
 
         return response()->json(array_merge(
             ['status' => 'sucess'],
