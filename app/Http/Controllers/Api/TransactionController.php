@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exceptions\SystemOverloadException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Transaction\QueryTransactionRequest;
 use App\Http\Requests\Transaction\TransferRequest;
@@ -42,6 +43,19 @@ class TransactionController extends Controller
                 'message' => 'Transfer completed successfully',
                 'data' => TransactionResource::make($result),
             ], 201);
+
+        } catch (SystemOverloadException $e) {
+
+            ProcessTransfer::dispatch(
+                $request->user()->id,
+                $request->receiver_id,
+                $request->amount
+            );
+
+            return response()->json([
+                'message' => 'System busy. Transfer queued for processing.',
+                'status' => 'queued',
+            ], 202);
 
         } catch (\Exception $e) {
             return response()->json([

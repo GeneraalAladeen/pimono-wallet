@@ -125,8 +125,31 @@ class TransactionService implements TransactionInterface
 
             $this->circuitBreaker->markFailure();
 
+            if ($this->isSystemOverload($e)) {
+                throw new SystemOverloadException($e->getMessage());
+            }
+
             throw $e;
         }
+    }
+
+    public function isSystemOverload(\Exception $e)
+    {
+        $overloadIndicators = [
+            'SQLSTATE[40001]',
+            'Deadlock found',
+            'Connection timeout',
+            'Too many connections',
+            'Server has gone away',
+        ];
+
+        foreach ($overloadIndicators as $indicator) {
+            if (str_contains($e->getMessage(), $indicator)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
