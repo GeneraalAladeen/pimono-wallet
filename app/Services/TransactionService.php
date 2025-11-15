@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use App\Events\Transactions\TransactionCompleted;
 
 
 class TransactionService 
@@ -50,7 +51,7 @@ class TransactionService
             $transaction->setRelation('sender', $sender);
             $transaction->setRelation('receiver', $receiver);
 
-            //@todo Broadcast created event
+            broadcast(new TransactionCompleted($transaction));
 
             return $transaction;
         });

@@ -3,6 +3,7 @@
 namespace Tests\Feature\Api\Auth;
 
 use App\Models\User;
+use App\Models\Transaction;
 use Tests\TestCase;
 use Illuminate\Support\Facades\Queue;
 use App\Jobs\Transaction\ProcessTransfer;
@@ -11,6 +12,9 @@ use Mockery\MockInterface;
 use App\Services\TransactionService;
 use App\Contracts\TransactionInterface;
 use App\Contracts\CircuitBreakerInterface;
+use App\Events\Transactions\TransactionCompleted;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Broadcasting\Channel;
 
 
 class StoreTransactionTest extends TestCase
@@ -81,6 +85,8 @@ class StoreTransactionTest extends TestCase
 
     public function test_transfer_can_be_made_to_user(): void
     {
+        Event::fake();
+
         $sender = User::factory()->create([
             'balance' => 200
         ]);
@@ -116,6 +122,8 @@ class StoreTransactionTest extends TestCase
             'total_amount_debited' => 101.50,
         ]);
 
+        $transaction = Transaction::first();
+
         $this->assertDatabaseHas('users', [
             'id' => $receiver->id,
             'balance' => 100
@@ -125,6 +133,10 @@ class StoreTransactionTest extends TestCase
             'id' => $sender->id,
             'balance' => 98.5
         ]);
+
+        Event::assertDispatched(TransactionCompleted::class, function ($event) use ($transaction) {
+            return $event->transaction->id === $transaction->id;
+        });
     }
     
 }
