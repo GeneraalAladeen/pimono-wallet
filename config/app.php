@@ -123,4 +123,12 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'max_system_load' => env('MAX_SYSTEM_LOAD', 2.0),
+    'max_queue_size' => env('MAX_QUEUE_SIZE', 50),
+
+    'circuit_breaker' => [
+        'failure_threshold' => env('CIRCUIT_FAILURE_THRESHOLD', 5),
+        'timeout_seconds' => env('CIRCUIT_TIMEOUT', 60),
+    ],
+
 ];

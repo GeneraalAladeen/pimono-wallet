@@ -2,14 +2,51 @@
 
 namespace App\Services;
 
+use App\Contracts\CircuitBreakerInterface;
+use App\Contracts\TransactionInterface;
 use App\Events\Transactions\TransactionCompleted;
+use App\Jobs\Transaction\ProcessTransfer;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Queue;
 
-class TransactionService
+class TransactionService implements TransactionInterface
 {
     const COMMISSION_RATE = 0.015;
+
+    public function __construct(public CircuitBreakerInterface $circuitBreaker)
+    {
+        //
+    }
+
+    /**
+     * Transfer money to user
+     *
+     * @param  int  $senderId
+     * @param  int  $receiverId
+     * @param  float  $amount
+     * @return Transaction | array
+     *
+     * @throws \Exception
+     */
+    public function transferMoney($senderId, $receiverId, $amount)
+    {
+        if ($this->shouldProcessSync()) {
+            return $this->processTransferSync($senderId, $receiverId, $amount);
+        }
+
+        ProcessTransfer::dispatch($senderId, $receiverId, $amount);
+
+        return ['status' => 'queued', 'message' => 'Transfer queued for processing'];
+    }
+
+    public function shouldProcessSync(): bool
+    {
+        return $this->isLowLoad() &&
+               $this->isCircuitHealthy() &&
+               $this->isQueueEmptyEnough();
+    }
 
     /**
      * Transfer money to user
@@ -52,6 +89,44 @@ class TransactionService
 
             return $transaction;
         });
+    }
+
+    public function isLowLoad()
+    {
+        $load = sys_getloadavg()[0]; // 1-minute system load average
+        $maxLoad = config('app.max_system_load', 2.0);
+
+        return $load < $maxLoad;
+    }
+
+    public function isCircuitHealthy()
+    {
+        return $this->circuitBreaker->isAvailable();
+    }
+
+    private function isQueueEmptyEnough()
+    {
+        $queueSize = Queue::size('transfers');
+        $maxQueueSize = config('app.max_queue_size', 50);
+
+        return $queueSize < $maxQueueSize;
+    }
+
+    public function processTransferSync($senderId, $receiverId, $amount)
+    {
+        try {
+            $result = $this->executeTransfer($senderId, $receiverId, $amount);
+
+            $this->circuitBreaker->markSuccess();
+
+            return $result;
+
+        } catch (\Exception $e) {
+
+            $this->circuitBreaker->markFailure();
+
+            throw $e;
+        }
     }
 
     /**

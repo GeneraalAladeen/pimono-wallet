@@ -28,11 +28,15 @@ class TransactionController extends Controller
     public function store(TransferRequest $request)
     {
         try {
-            $result = $this->transactionService->executeTransfer(
+            $result = $this->transactionService->transferMoney(
                 $request->user()->id,
                 $request->receiver_id,
                 $request->amount
             );
+
+            if (isset($result['status']) && $result['status'] === 'queued') {
+                return response()->json($result, 202);
+            }
 
             return response()->json([
                 'message' => 'Transfer completed successfully',

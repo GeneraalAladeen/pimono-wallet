@@ -3,9 +3,12 @@
 namespace Tests\Feature\Api\Auth;
 
 use App\Events\Transactions\TransactionCompleted;
+use App\Jobs\Transaction\ProcessTransfer;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Services\TransactionService;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
 
 class StoreTransactionTest extends TestCase
@@ -128,5 +131,36 @@ class StoreTransactionTest extends TestCase
         Event::assertDispatched(TransactionCompleted::class, function ($event) use ($transaction) {
             return $event->transaction->id === $transaction->id;
         });
+    }
+
+    public function test_transfer_can_be_processed_asynchronously(): void
+    {
+        Queue::fake();
+
+        $this->mock(TransactionService::class, function ($mock) {
+            $mock->shouldReceive('shouldProcessSync')->andReturn(false);
+        })->makePartial();
+
+        $sender = User::factory()->create([
+            'balance' => 200,
+        ]);
+        $receiver = User::factory()->create([
+            'balance' => 0,
+        ]);
+
+        $this->actingAs($sender);
+
+        $response = $this->postJson(route('transaction.store'), [
+            'receiver_id' => $receiver->id,
+            'amount' => 100,
+        ]);
+
+        $response->assertStatus(202)
+            ->assertJsonFragment([
+                'message' => 'Transfer queued for processing',
+                'status' => 'queued',
+            ]);
+
+        Queue::assertPushedOn('transfers', ProcessTransfer::class);
     }
 }
