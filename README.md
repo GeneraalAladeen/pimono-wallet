@@ -32,17 +32,21 @@ Real time update. Update the following env. I have provided a sandbox pusher acc
 
     BROADCAST_CONNECTION=pusher
 
-Setup Laravel
+Setup Encryption key and database
 
     docker-compose run --rm base_php php artisan key:gen
 
     docker-compose up -d database_server
 
+Run migrations
+
     docker-compose run --rm base_php php artisan migrate --seed
 
-    docker-compose up -d
+(note: if an error is encountered, stop other docker containers running and try again)
 
-(note: if an error is encountered at any point,  stop other docker containers running and try again)
+Start application
+
+    docker-compose up -d
 
 The application will be served on http://localhost/ .
 
