@@ -6,7 +6,15 @@ This is a simple wallet application built with laravel 12 for a technical test. 
 
 ## Installation
 
-The application is wrapped with a docker container. Ensure docker-compose/docker is installed and running on system before running the command.
+The application is wrapped with a docker container. Ensure docker-compose/docker is installed and running on system before running the command. To install docker visit `https://docs.docker.com/desktop/`. 
+
+Clone the repo
+
+    git clone https://github.com/GeneraalAladeen/pimono-wallet.git
+
+Switch to repo folder
+
+    cd pimono-wallet
 
 install php and run composer
 
