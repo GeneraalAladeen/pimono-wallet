@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Exceptions\SystemOverloadException;
 use App\Http\Controllers\Controller;
+use App\Jobs\Transaction\ProcessTransfer;
 use App\Http\Requests\Transaction\QueryTransactionRequest;
 use App\Http\Requests\Transaction\TransferRequest;
 use App\Http\Resources\TransactionResource;
