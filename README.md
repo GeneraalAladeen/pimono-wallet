@@ -24,11 +24,11 @@ Copy the environment file:
 
     cp .env.example .env
 
-Real time update. Update the following env. I have provided a sandbox pusher account credential for the sake of simplicity but feel free to use yours.
+Real time update. Update the following env with your Pusher credentials (sign up at https://pusher.com):
 
-    PUSHER_APP_ID=1238668
-    PUSHER_APP_KEY=b5c957260fd11205fc84
-    PUSHER_APP_SECRET=f13a52431649e0c74de7
+    PUSHER_APP_ID=your_app_id
+    PUSHER_APP_KEY=your_app_key
+    PUSHER_APP_SECRET=your_app_secret
 
     BROADCAST_CONNECTION=pusher
 
